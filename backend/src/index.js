@@ -1,5 +1,6 @@
 const express = require('express'); 
 const mongoose = require('mongoose');
+const cors = require('cors');
 const routes = require('./routes');
 
 const app = express();
@@ -9,6 +10,9 @@ mongoose.connect('mongodb+srv://natan:1Lazzeri@@cluster0-aloxh.mongodb.net/week1
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
+
+//Com isso liberamos todo o acesso externo para nossa aplicação;
+app.use(cors())
 
 //Configuração para TODAS as rotas da nossa aplicação, usamos o .use Ex:
 //Fazemos com que todas as nossas requisições entendam o formato json;
