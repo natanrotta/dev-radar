@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Image, View, Text, TextInput, TouchableOpacity, Keyboard} from 'react-native'
+import { StyleSheet, Image, View, Text, TextInput, TouchableOpacity, Keyboard } from 'react-native'
 import MapView, { Marker, Callout } from 'react-native-maps';
 import { requestPermissionsAsync, getCurrentPositionAsync } from 'expo-location';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import api from '../services/api';
+import { connect, disconnect, subscribeToNewDevs } from '../services/socket';
 
 function Main({ navigation }) {
     const [devs, setDevs] = useState([]);
@@ -34,6 +35,26 @@ function Main({ navigation }) {
         loadInitialPosition();
     }, []);
 
+    //Fica esperando uma mudança em dev para poder chamar a função subscribeToNewDevs;
+    useEffect(() => {
+        subscribeToNewDevs(dev => setDevs(...devs, dev));
+    }, [devs]);
+
+    // Essa function é responsável em escutar nosso servidor em tempo real.
+    // Ela é chamada cada vez que o dev clica no botão de buscar, sendo asssim, todos os devs que se
+    // cadastrarem depois do click e estão dentro dos parâmtros do filtro, serão mostrados mesmo assim no map, em tempo real.
+    function setupWebsocket() {
+        disconnect();
+
+        const { latitude, longitude } = currentRegion;
+
+        connect(
+            latitude,
+            longitude,
+            techs
+        );
+    }
+
     async function loadDevs() {
         const { latitude, longitude } = currentRegion;
 
@@ -46,6 +67,7 @@ function Main({ navigation }) {
         });
 
         setDevs(response.data.devs);
+        setupWebsocket();
 
         Keyboard.dismiss()
     }
